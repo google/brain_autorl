@@ -42,6 +42,8 @@ import pyglove as pg
 class DAGPointMutator(pg.evolution.Mutator):
   """A class to carry out a point mutation in the DAG search space."""
 
+  allow_symbolic_assignment = True
+
   def _on_bound(self):
     # Dict for saving hashed outputs of a program and its reward to test for
     # duplicates.

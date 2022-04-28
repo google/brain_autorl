@@ -82,7 +82,6 @@ def get_tuning_algorithm(tuning_algo, input_nodes, existing_ops, search_space,
         mutation_probability=mutation_probability,
         input_nodes=input_nodes,
         num_freeze_ops=num_freeze_ops)
-    mutator.set_accessor_writable(True)
     mutator.template = template
     mutator.operators = operators
     mutator.existing_ops = existing_ops

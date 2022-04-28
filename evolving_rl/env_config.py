@@ -14,6 +14,7 @@
 
 """Contains the configuration settings for each environment."""
 import collections
+import copy
 from bsuite import sweep
 
 classical_env_config = collections.OrderedDict([
@@ -250,7 +251,7 @@ update_dict = {}
 for k, v in minigrid_env_config.items():
   for modifier, r_scale in minigrid_modifiers:
     new_key = modifier + k
-    update_dict[new_key] = v
+    update_dict[new_key] = copy.deepcopy(v)
     update_dict[new_key]['min_return'] *= r_scale
     update_dict[new_key]['max_return'] *= r_scale
 minigrid_env_config.update(update_dict)
