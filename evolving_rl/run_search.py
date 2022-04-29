@@ -27,8 +27,6 @@ from brain_autorl.evolving_rl.program import build_program
 from brain_autorl.evolving_rl.program import InvalidProgramError
 import pyglove.google as pg
 
-
-FLAGS = flags.FLAGS
 flags.DEFINE_integer('max_trials', 100, 'Max number of vizier trials.')
 flags.DEFINE_string('objective_metric', 'train/normalized_avg_return_last50',
                     'Objective to maximize')
@@ -47,6 +45,8 @@ flags.DEFINE_float('mutation_probability', 0.95,
                    'Probability of performing a mutation.')
 flags.DEFINE_string('graph_def', 'pre_graph_6_existingdqn_nofreeze',
                     'Graph definition name')
+
+FLAGS = flags.FLAGS
 
 graph_defs = {
     'pre_graph_6_existingdqn_nofreeze':
@@ -98,9 +98,7 @@ def get_tuning_algorithm(tuning_algo, input_nodes, existing_ops, search_space,
 
 def main(_):
   env_ids = [
-      'CartPole-v0', 'MiniGrid-KeyCorridorS3R1-v0',
-      'MiniGrid-Dynamic-Obstacles-6x6-v0', 'MiniGrid-DoorKey-5x5-v0',
-      'MiniGrid-MultiRoom-N2-S4-v0', 'MiniGrid-FourRooms-v0'
+      'CartPole-v0', 'MiniGrid-FourRooms-v0'
   ]
   graph_def = graph_defs[FLAGS.graph_def]
   (operators, input_nodes, existing_ops, search_space, num_freeze_ops,
