@@ -16,11 +16,22 @@
 import abc
 from typing import TypeVar
 
+from absl import flags
 import pyglove as pg
 import sonnet.v2 as snt
 import tensorflow as tf
 import tensorflow_probability as tfp
 from trfl import indexing_ops
+
+
+flags.DEFINE_bool(
+    'numpy_style_broadcast', False,
+    'If True, use Numpy style broadcasting rule, i.e. padding dimensions on the '
+    'left. Defaults to False for backward compatibility.'
+)
+
+
+FLAGS = flags.FLAGS
 
 
 def check_dtypes_same_type(input_dtypes):
@@ -42,13 +53,20 @@ RANDOM_FLOAT_RANGE = 100
 
 
 def broadcast_to_larger(x, y):
+  """Broadcast shapes."""
   len_diff = abs(len(tf.shape(x)) - len(tf.shape(y)))
   if len_diff == 0:
     return x, y
   elif len(tf.shape(x)) > len(tf.shape(y)):
-    return x, tf.reshape(y, y.shape + [1] * len_diff)
+    if FLAGS.numpy_style_broadcast:
+      return x, tf.reshape(y, [1] * len_diff + y.shape)
+    else:
+      return x, tf.reshape(y, y.shape + [1] * len_diff)
   else:
-    return tf.reshape(x, x.shape + [1] * len_diff), y
+    if FLAGS.numpy_style_broadcast:
+      return tf.reshape(x, [1] * len_diff + x.shape), y
+    else:
+      return tf.reshape(x, x.shape + [1] * len_diff), y
 
 
 class DTYPE(pg.Object):
