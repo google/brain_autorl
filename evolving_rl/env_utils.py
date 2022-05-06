@@ -100,9 +100,9 @@ def run_train_loop(env_id,
                    record_qval=False,
                    log_to_xm=True,
                    force_reproducibility=False,
-                   generate_eval_metrics=False,):
+                   generate_eval_metrics=False,
+                   env_seed: Optional[int] = 1):
   """Evaluates a loss program on an environment."""
-  env_seed = 1 if force_reproducibility else None
   env = make_environment_gym(
       env_id, minigrid_obs_version=wrapper_version, seed=env_seed)
   env_spec = specs.make_environment_spec(env)
