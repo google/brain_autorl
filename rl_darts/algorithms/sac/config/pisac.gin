@@ -1,0 +1,104 @@
+"""Modified gin file from original PI-SAC codebase."""
+import gin.tf.external_configurables
+import pisac.encoders
+import pisac.sac_agent
+import pisac.tanh_normal_projection_network
+
+from brain_autorl.rl_darts.algorithms.sac import encoders
+from brain_autorl.rl_darts.algorithms.sac import train_pisac
+
+
+# Dataset params
+dm_control_env.load.grayscale=False  # CHANGE frame_shape WHEN YOU CHANGE THIS!
+train_pisac.train_eval.random_seed=None
+train_pisac.train_eval.domain_name='cartpole'
+train_pisac.train_eval.task_name='swingup'
+train_pisac.train_eval.frame_shape=(84, 84, 3)  # SET TO 1 FOR GRAYSCALE, 3 FOR COLOR!
+train_pisac.train_eval.image_aug_type='random_shifting'
+train_pisac.train_eval.frame_stack=3
+train_pisac.train_eval.action_repeat=4
+
+train_pisac.train_eval.learn_ceb=False
+train_pisac.train_eval.ceb_action_condition=True
+train_pisac.train_eval.use_augmented_q=False
+train_pisac.train_eval.use_critic_grad=True
+
+
+# Params for collect
+train_pisac.train_eval.num_env_steps=1000000
+train_pisac.train_eval.collect_every=1
+train_pisac.train_eval.initial_collect_steps=1000
+train_pisac.train_eval.collect_steps_per_iteration=1
+train_pisac.train_eval.replay_buffer_capacity=100000
+
+# Params for eval
+train_pisac.train_eval.num_eval_episodes=10
+train_pisac.train_eval.eval_env_interval=5000
+
+# feature learning
+train_pisac.train_eval.e_ctor=@encoders.FRNConv
+train_pisac.train_eval.e_head_ctor=@encoders.MVNormalDiagParamHead
+train_pisac.train_eval.b_ctor=@encoders.FRNConv
+train_pisac.train_eval.b_head_ctor=@encoders.MVNormalDiagParamHead
+encoders.FRNConv.filters=(32, 32, 32, 32)
+encoders.FRNConv.strides=(2, 1, 1, 1)
+encoders.FRNConv.kernels=(3, 3, 3, 3)
+encoders.FRNConv.padding='valid'
+encoders.MVNormalDiagParamHead.fc_layers=(128, 128)
+encoders.MVNormalDiagParamHead.kernel_initializer='glorot_uniform'
+encoders.MVNormalDiagParamHead.scale=1.0
+train_pisac.train_eval.ceb_backward_encode_rewards=True
+train_pisac.train_eval.ceb_feature_dim=50
+train_pisac.train_eval.conv_feature_dim=50
+train_pisac.train_eval.initial_feature_step=0
+train_pisac.train_eval.feature_lr=3e-4
+train_pisac.train_eval.feature_lr_schedule=None
+train_pisac.train_eval.feature_grad_clip=None
+train_pisac.train_eval.enc_ema_tau=0.05
+
+# Default SAC
+train_pisac.train_eval.target_update_tau=0.005
+train_pisac.train_eval.target_update_period=1
+train_pisac.train_eval.actor_fc_layers=(256, 256)
+train_pisac.train_eval.critic_obs_fc_layers=None
+train_pisac.train_eval.critic_action_fc_layers=None
+train_pisac.train_eval.critic_joint_fc_layers=(256, 256)
+train_pisac.train_eval.actor_kernel_init='glorot_uniform'
+train_pisac.train_eval.normal_proj_net=@pisac.sac_agent.sac_normal_projection_net
+train_pisac.train_eval.critic_kernel_init='glorot_uniform'
+train_pisac.train_eval.critic_last_kernel_init='glorot_uniform'
+pisac.sac_agent.SacAgent.critic_loss_weight=0.5
+pisac.sac_agent.SacAgent.initial_log_alpha=0.0
+pisac.sac_agent.SacAgent.heuristic_target_entropy_type='-dim(A)/2'
+
+# Params for train
+train_pisac.train_eval.batch_size=256
+train_pisac.train_eval.actor_learning_rate=3e-4
+train_pisac.train_eval.critic_learning_rate=3e-4
+train_pisac.train_eval.alpha_learning_rate=3e-4
+train_pisac.train_eval.gamma=0.99
+train_pisac.train_eval.reward_scale_factor=1.0
+train_pisac.train_eval.use_tf_functions=True
+
+# Params for summaries and logging
+train_pisac.train_eval.baseline_log_fn=None
+train_pisac.train_eval.checkpoint_env_interval=10000
+train_pisac.train_eval.log_env_interval=1000
+train_pisac.train_eval.summary_interval=1000
+# train_pisac.train_eval.image_summary_interval=1000
+train_pisac.train_eval.image_summary_interval=0  # USE larger than 0 for generative PI-SAC
+train_pisac.train_eval.summaries_flush_secs=10
+train_pisac.train_eval.debug_summaries=True
+train_pisac.train_eval.summarize_grads_and_vars=False
+train_pisac.train_eval.eval_metrics_callback=None
+train_pisac.train_eval.train_next_frame_decoder=False
+
+# CEB
+# train_pisac.train_eval.ceb_generative_ratio=1.0  # UNCOMMENT for generative PI-SAC
+# train_pisac.train_eval.ceb_generative_items=None  # UNCOMMENT for generative PI-SAC
+train_pisac.train_eval.ceb_beta=0.01
+train_pisac.train_eval.ceb_beta_schedule=None
+ceb_task.CEB.forward_smoothing_weight=0.6
+ceb_task.CEB.smooth_mode='b'
+
+utils.SimpleDeconv.filters=(128, 64, 32, 9)
