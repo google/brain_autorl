@@ -1,5 +1,4 @@
 """Tests for C51 agent."""
-import unittest
 from absl.testing import absltest
 from absl.testing import parameterized
 
@@ -16,7 +15,6 @@ import sonnet.v2 as snt
 
 class C51Test(parameterized.TestCase):
 
-  @unittest.skip('Takes too long internally.')
   @parameterized.parameters({'dueling': True}, {'dueling': False})
   def test_dqn(self, dueling):
     # Create a fake environment to test with.

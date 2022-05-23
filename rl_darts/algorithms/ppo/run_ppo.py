@@ -1,7 +1,7 @@
 """Runs PPO on Procgen."""
+import collections
 import functools
 import os
-
 from absl import app
 from absl import flags
 from absl import logging
@@ -69,7 +69,7 @@ def train_eval(root_dir: str):
   train_step = train_utils.create_train_step()
 
   feature_network = base_policies.make_impala_cnn_network(
-      depths=FLAGS.config.impala_depths)
+      depths=FLAGS.config.impala_depths, mlp_size=FLAGS.config.mlp_size)
   if FLAGS.config.use_rnn:
     rnn_cell = tf.keras.layers.LSTMCell(units=FLAGS.config.rnn_hidden_size)
   else:
@@ -230,7 +230,7 @@ def train_eval(root_dir: str):
       summary_interval=FLAGS.config.summary_interval,
       episodes_per_run=FLAGS.config.eval_episodes)
 
-  chk = dict()  # Can be checkpointer.
+  chk = collections.defaultdict(dict)  # Can be checkpointer.
   tf_state = tf.train.Checkpoint(agent=agent, train_step=train_step)
   chk['state']['tf'] = tf_state
   chk['state']['iteration'] = 0

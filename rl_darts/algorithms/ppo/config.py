@@ -17,7 +17,7 @@ def get_config() -> config_dict.ConfigDict:
 
   # Params for conv architecture
   config.impala_depths = [16, 32, 32]  # Default used in Procgen paper.
-
+  config.mlp_size = 256  # Default.
   # Params for RNN.
   config.use_rnn = False
   config.rnn_hidden_size = 256
