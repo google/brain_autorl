@@ -47,7 +47,7 @@ class DAGPointMutator(pg.evolution.Mutator):
   def _on_bound(self):
     # Dict for saving hashed outputs of a program and its reward to test for
     # duplicates.
-    self.output_dict: typing.Dict[str, typing.Float] = {}  # pytype: disable=invalid-annotation  # attribute-variable-annotations
+    self.output_dict: typing.Dict[float, float] = {}  # pytype: disable=invalid-annotation  # attribute-variable-annotations
     # Initialize random set of inputs to test for duplicates.
     self.random_inputs = [
         x.initialize_random_input(10) for x in self.input_nodes
@@ -56,9 +56,8 @@ class DAGPointMutator(pg.evolution.Mutator):
     self.rand_float = np.random.uniform()
     # self._random = random.Random(self.seed)
 
-  def compute_hash_output(self, program):
+  def _compute_hash_output(self, program) -> float:
     output = program(*self.random_inputs)
-    # output_str = ''.join([str(round(x, 4)) for x in output.numpy().ravel()])
     output_str = sum([round(x, 4) for x in output.numpy().ravel()])
     if np.isnan(output_str) or np.isinf(output_str):
       output_str = self.rand_float
@@ -68,8 +67,8 @@ class DAGPointMutator(pg.evolution.Mutator):
                 np.finfo(np.float32).max))
     return output_str
 
-  def check_duplicate(self, program):
-    output_str = self.compute_hash_output(program)
+  def _check_duplicate(self, program):
+    output_str = self._compute_hash_output(program)
     if output_str in self.output_dict:
       return output_str, True, self.output_dict[output_str]
     else:
@@ -77,10 +76,6 @@ class DAGPointMutator(pg.evolution.Mutator):
 
   def update_output_dict(self, dna, reward):
     """Called by evolution controller to save reward of program."""
-    # rogram_spec = self.template.decode(dna)
-    # loss_program, _ = build_program(
-    #    self.input_nodes, program_spec, self.operators, check_path_diff=0)
-    # output_str = self.compute_hash_output(loss_program)
     output_str = dna.to_json(compact=True)['value'][-1]
     if output_str in self.output_dict:
       print('Duplicate already in dict', output_str)
@@ -100,14 +95,14 @@ class DAGPointMutator(pg.evolution.Mutator):
                                       self.operators, 0)
 
       while True:
-        new_program_spec = self.alter_node_idx(dna, program_lst, loss_program)
+        new_program_spec = self._alter_node_idx(dna, program_lst, loss_program)
         new_loss_program, valid = build_program(self.input_nodes,
                                                 new_program_spec,
                                                 self.operators, 0)
         if not valid:
           continue
         t4 = time.time()
-        hash_string, duplicate, reward = self.check_duplicate(new_loss_program)
+        hash_string, duplicate, reward = self._check_duplicate(new_loss_program)
         t5 = time.time()
         print('Duplicate check took ', t5 - t4)
         new_dna = self.template.encode(
@@ -137,42 +132,10 @@ class DAGPointMutator(pg.evolution.Mutator):
       dna.use_spec(old_spec)
       return dna
 
-  def update_dna_hash(self, dna, reward):
-    self.dna_hash[self.hash_dna(dna)] = reward
-
-  def hash_dna(self, dna):
-    return tuple(dna.to_json(compact=True)[:-2])
-
-  def mutatev2(self, dna: pg.DNA) -> pg.DNA:
-    """Mutates a DNA by randomizing one of the operations."""
-    old_spec = dna.spec
-
-    r_dna = pg.random_dna(old_spec).to_json(compact=True)
-    # 1st dna val reserved for policy
-    # Last 2 dna values are reserved for duplicate, reward
-    r_idx = random.choice(range(1, len(r_dna) - 2))
-    new_dna_lst = dna.to_json(compact=True)
-    new_dna_lst[r_idx] = r_dna[r_idx]
-
-    new_dna_hash = tuple(new_dna_lst[:-2])
-    new_dna_lst[-2] = False  # Set duplicate to False
-    new_dna_lst[-1] = 0.0  # set reward to 0
-    if new_dna_hash in self.dna_hash:
-      new_dna_lst[-2] = True  # True for duplicate
-      new_dna_lst[-1] = self.dna_hash[new_dna_hash]  # set reward
-
-    new_dna = pg.DNA.parse(new_dna_lst)
-    new_dna.use_spec(old_spec)
-
-    return new_dna
-
-  def mutate_v3(self):
-    pass
-
-  def sample_node_idx_to_mutate(self,
-                                program_lst,
-                                loss_program,
-                                only_leaf=False):
+  def _sample_node_idx_to_mutate(self,
+                                 program_lst,
+                                 loss_program,
+                                 only_leaf=False):
     idxs = list(
         range(
             len(self.input_nodes) + self.num_freeze_ops,
@@ -188,12 +151,12 @@ class DAGPointMutator(pg.evolution.Mutator):
 
     return node_idx, n_idx, op_to_mutate
 
-  def alter_node_idx(self, dna, program_lst, loss_program):
-    node_idx, n_idx, op_to_replace = self.sample_node_idx_to_mutate(
+  def _alter_node_idx(self, dna, program_lst, loss_program):
+    node_idx, n_idx, op_to_replace = self._sample_node_idx_to_mutate(
         program_lst, loss_program)
 
     if isinstance(op_to_replace, LossOpNode):
-      return self.alter_continuous(dna, program_lst, loss_program)
+      return self._alter_continuous(dna, program_lst, loss_program)
 
     is_leaf = node_idx in loss_program.find_leaf_nodes()
 
@@ -232,7 +195,7 @@ class DAGPointMutator(pg.evolution.Mutator):
         new_program_lst.append((old_idx, old_input_idxs))
     return ProgramSpec(program_lst=new_program_lst)
 
-  def alter_continuous(self, dna, program_lst, loss_program):
+  def _alter_continuous(self, dna, program_lst, loss_program):
     return ProgramSpec(
         program_lst=program_lst,
         loss_weight=random.choice(loss_program.ops_lst[-1].loss_weights))
@@ -292,7 +255,6 @@ class CGSRegularizedEvolution(pg.DNAGenerator):
   def feedback(self, dna: pg.DNA, reward: float) -> None:
     """Feeds back information about an evaluated DNA to the search algorithm."""
     self.mutator.update_output_dict(dna, reward)
-    # self.mutator.update_dna_hash(dna, reward)
     self._population.append(_Individual(dna, reward))
     while len(self._population) > self.population_size:
       # Remove oldest.
