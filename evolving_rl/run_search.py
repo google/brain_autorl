@@ -13,20 +13,23 @@
 # limitations under the License.
 
 """Example to run loss program search."""
+import random
 import time
 
 from absl import app
 from absl import flags
+from brain_autorl.evolving_rl import evolution_v2
 from brain_autorl.evolving_rl.custom_dqn import DQN
 from brain_autorl.evolving_rl.custom_dqn import make_networks
 from brain_autorl.evolving_rl.env_utils import run_train_loop
-from brain_autorl.evolving_rl.evolution import CGSRegularizedEvolution
-from brain_autorl.evolving_rl.evolution import DAGPointMutator
 import brain_autorl.evolving_rl.graph_configs as gconfig
 from brain_autorl.evolving_rl.program import build_program
 from brain_autorl.evolving_rl.program import InvalidProgramError
+import numpy as np
 import pyglove.google as pg
+import tensorflow as tf
 
+flags.DEFINE_integer('seed', 1, 'Seed for various modules (tf, numpy, etc).')
 flags.DEFINE_integer('max_trials', 100, 'Max number of vizier trials.')
 flags.DEFINE_string('objective_metric', 'train/normalized_avg_return_last50',
                     'Objective to maximize')
@@ -77,26 +80,47 @@ def get_tuning_algorithm(tuning_algo, input_nodes, existing_ops, search_space,
         update_batch_size=8, num_updates_per_feedback=10)
   elif tuning_algo == 'evolution':
     mutation_probability = 0.95
-    template = pg.template(search_space)
-    mutator = DAGPointMutator(
-        mutation_probability=mutation_probability,
+
+    graph_spec = evolution_v2.GraphSpec(
+        template=pg.template(search_space),
         input_nodes=input_nodes,
+        existing_ops=existing_ops,
+        program_length=program_length,
+        operators=operators,
+        adjust_loss_weight=adjust_loss_weight,
+    )
+    graph_hasher = evolution_v2.GraphHasher(input_nodes)
+    graph_generator = evolution_v2.GraphGenerator(
+        graph_spec, graph_hasher, FLAGS.seed)
+    graph_mutator = evolution_v2.GraphMutator(
+        graph_spec=graph_spec,
+        graph_hasher=graph_hasher,
+        mutation_probability=mutation_probability,
         num_freeze_ops=num_freeze_ops)
-    mutator.template = template
-    mutator.operators = operators
-    mutator.existing_ops = existing_ops
-    mutator.program_length = program_length
-    mutator.adjust_loss_weight = adjust_loss_weight
-    algorithm = CGSRegularizedEvolution(
-        population_size=FLAGS.population_size,
-        tournament_size=FLAGS.tournament_size,
-        mutator=mutator)
+
+    # Regularized Evolution.
+    algorithm = pg.evolution.Evolution(
+        reproduction=(
+            # Tournament selection and mutation.
+            pg.evolution.selectors.Random(
+                FLAGS.tournament_size, seed=FLAGS.seed)
+            >> pg.evolution.selectors.Top(1) >> graph_mutator),
+        population_init=(graph_generator, FLAGS.population_size),
+        population_update=(
+            # Pop out oldest individual and update functional equivalence cache.
+            pg.evolution.selectors.Last(FLAGS.population_size)
+            >> evolution_v2.update_cache))
+
     return algorithm
   else:
     raise ValueError(f'tuning algorithm {tuning_algo} not supported')
 
 
 def main(_):
+  random.seed(FLAGS.seed)
+  np.random.seed(FLAGS.seed)
+  tf.random.set_seed(FLAGS.seed)
+
   env_ids = [
       'CartPole-v0', 'MiniGrid-FourRooms-v0'
   ]
@@ -115,6 +139,7 @@ def main(_):
       adjust_loss_weight=False,
   )
 
+  trial_rewards = []
   for program_spec, feedback in pg.sample(
       search_space, generator, FLAGS.max_trials):  # pytype: disable=wrong-arg-types  # gen-stub-imports
 
@@ -169,6 +194,11 @@ def main(_):
         elapse_secs=time.time() - start_time,
     )
     feedback.add_link('graph_viz', graph_viz_link)
+    feedback.done()
+    trial_rewards.append(float(all_metrics['final_perf']))
+    if len(trial_rewards) % 10 == 0:
+      print('=' * 80, '\n')
+      print(f'All trial rewards: {trial_rewards}')
 
 
 if __name__ == '__main__':
