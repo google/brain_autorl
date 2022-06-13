@@ -103,6 +103,7 @@ class GraphMutator(pg.evolution.Mutator):
   allow_symbolic_assignment = True
 
   def _on_bound(self):
+    super()._on_bound()
     self.template = self.graph_spec.template
     self.input_nodes = self.graph_spec.input_nodes
     self.operators = self.graph_spec.operators
@@ -150,8 +151,8 @@ class GraphMutator(pg.evolution.Mutator):
       program_spec = self.graph_spec.sample_valid_program_spec()
       program, _ = self.graph_spec.build_program_from_spec(program_spec)
       hash_key = self.graph_hasher.compute_hash_key(program)
-      dna.set_userdata(_GRAPH_HASH_KEY, hash_key)
       dna = self.template.encode(program_spec)
+      dna.set_userdata(_GRAPH_HASH_KEY, hash_key)
       dna.use_spec(old_spec)
       return dna
 
