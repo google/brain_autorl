@@ -268,3 +268,21 @@ def update_cache(
 
   print(f'global cache updated: {cache}')
   return dna_list
+
+
+def build_regularized_evolution(
+    population_size: int,
+    tournament_size: int,
+    seed: int,
+    graph_generator: GraphGenerator,
+    graph_mutator: GraphMutator,
+) -> pg.evolution.Evolution:
+  return pg.evolution.Evolution(
+      reproduction=(
+          # Tournament selection and mutation.
+          pg.evolution.selectors.Random(tournament_size, seed=seed) >>
+          pg.evolution.selectors.Top(1) >> graph_mutator),
+      population_init=(graph_generator, population_size),
+      population_update=(
+          # Pop out oldest individual and update functional equivalence cache.
+          pg.evolution.selectors.Last(population_size) >> update_cache))
