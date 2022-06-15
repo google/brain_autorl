@@ -15,6 +15,7 @@
 """RL Policies constructed via DARTS."""
 import abc
 import enum
+import typing
 from typing import List, Optional, Tuple, Dict
 
 from brain_autorl.rl_darts.policies import darts_cells
@@ -211,12 +212,16 @@ class RNNCellNet(snt.RNNCore, DartsNet):
   def init_from_darts_net_config(self, net_config: NetConfig):
     self._cell = darts_cells.DartsCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict['rnn'])
+        cell_config=typing.cast(
+            darts_cells.DartsCellConfig,
+            net_config.cell_config_dict['rnn']))
 
   def init_from_fixed_net_config(self, net_config: NetConfig):
     self._cell = darts_cells.FixedCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict['rnn'])
+        cell_config=typing.cast(
+            darts_cells.FixedCellConfig,
+            net_config.cell_config_dict['rnn']))
 
 
 class DartsImpalaConvSequence(DartsNet):
@@ -245,18 +250,26 @@ class DartsImpalaConvSequence(DartsNet):
   def init_from_darts_net_config(self, net_config: NetConfig):
     self._cell_1 = darts_cells.DartsCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict[self._normal_key1])
+        cell_config=typing.cast(
+            darts_cells.DartsCellConfig,
+            net_config.cell_config_dict[self._normal_key1]))
     self._cell_2 = darts_cells.DartsCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict[self._normal_key2])
+        cell_config=typing.cast(
+            darts_cells.DartsCellConfig,
+            net_config.cell_config_dict[self._normal_key2]))
 
   def init_from_fixed_net_config(self, net_config: NetConfig):
     self._cell_1 = darts_cells.FixedCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict[self._normal_key1])
+        cell_config=typing.cast(
+            darts_cells.FixedCellConfig,
+            net_config.cell_config_dict[self._normal_key1]))
     self._cell_2 = darts_cells.FixedCell(
         output_channels=self._output_channels,
-        cell_config=net_config.cell_config_dict[self._normal_key2])
+        cell_config=typing.cast(
+            darts_cells.FixedCellConfig,
+            net_config.cell_config_dict[self._normal_key2]))
 
   def __call__(self, x, is_training=True):
     x = self._conv(x)
@@ -335,30 +348,42 @@ class DartsStandardCNN(DartsNet):
       self._cells.append(
           darts_cells.DartsCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['reduction']))
+              cell_config=typing.cast(
+                  darts_cells.DartsCellConfig,
+                  net_config.cell_config_dict['reduction'])))
       self._cells.append(
           darts_cells.DartsCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['normal']))
+              cell_config=typing.cast(
+                  darts_cells.DartsCellConfig,
+                  net_config.cell_config_dict['normal'])))
       self._cells.append(
           darts_cells.DartsCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['normal']))
+              cell_config=typing.cast(
+                  darts_cells.DartsCellConfig,
+                  net_config.cell_config_dict['normal'])))
 
   def init_from_fixed_net_config(self, net_config: NetConfig):
     for output_channels in self._output_channels_list:
       self._cells.append(
           darts_cells.FixedCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['reduction']))
+              cell_config=typing.cast(
+                  darts_cells.FixedCellConfig,
+                  net_config.cell_config_dict['reduction'])))
       self._cells.append(
           darts_cells.FixedCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['normal']))
+              cell_config=typing.cast(
+                  darts_cells.FixedCellConfig,
+                  net_config.cell_config_dict['normal'])))
       self._cells.append(
           darts_cells.FixedCell(
               output_channels=output_channels,
-              cell_config=net_config.cell_config_dict['normal']))
+              cell_config=typing.cast(
+                  darts_cells.FixedCellConfig,
+                  net_config.cell_config_dict['normal'])))
 
   def __call__(self, x, is_training=True, darts_output=False):
     if self.use_initial_conv:
