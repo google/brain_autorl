@@ -18,6 +18,7 @@ import time
 
 from absl import app
 from absl import flags
+from absl import logging
 from brain_autorl.evolving_rl import evolution_v2
 from brain_autorl.evolving_rl.custom_dqn import DQN
 from brain_autorl.evolving_rl.custom_dqn import make_networks
@@ -155,7 +156,7 @@ def main(_):
             limit_steps=False,
             wrapper_version=FLAGS.wrapper_version,
             target_update_period=FLAGS.target_update_period)
-        print('train_results', train_results)
+        logging.info('train_results: %s', train_results)
         env_perf = train_results[FLAGS.objective_metric]
         all_metrics['final_perf'] += env_perf
 
@@ -170,7 +171,7 @@ def main(_):
         if env_idx == 0 and all_metrics['final_perf'] < 0.6:
           break
 
-    print('all_metrics', all_metrics)
+    logging.info('all_metrics: %s', all_metrics)
     feedback.add_measurement(
         reward=float(all_metrics['final_perf']),
         metrics=all_metrics,
@@ -181,8 +182,8 @@ def main(_):
     feedback.done()
     trial_rewards.append(float(all_metrics['final_perf']))
     if len(trial_rewards) % 10 == 0:
-      print('=' * 80, '\n')
-      print(f'All trial rewards: {trial_rewards}')
+      logging.info('%s, %s', '=' * 80, '\n')
+      logging.info('All trial rewards: %s', trial_rewards)
 
 
 if __name__ == '__main__':

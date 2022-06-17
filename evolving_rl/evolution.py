@@ -22,6 +22,7 @@ import collections
 import random
 import time
 import typing
+from absl import logging
 
 from brain_autorl.evolving_rl.ops import LossOpNode
 from brain_autorl.evolving_rl.ops import Node
@@ -78,7 +79,7 @@ class DAGPointMutator(pg.evolution.Mutator):
     """Called by evolution controller to save reward of program."""
     output_str = dna.to_json(compact=True)['value'][-1]
     if output_str in self.output_dict:
-      print('Duplicate already in dict', output_str)
+      logging.info('Duplicate already in dict %s', output_str)
     self.output_dict[output_str] = reward
 
   def mutate(self, dna: pg.DNA) -> pg.DNA:
@@ -89,7 +90,7 @@ class DAGPointMutator(pg.evolution.Mutator):
       t0 = time.time()
       program_spec = self.template.decode(dna)
       t1 = time.time()
-      print('Decoding took ', t1 - t0)
+      logging.info('Decoding took %s', t1 - t0)
       program_lst = program_spec.program_lst
       loss_program, _ = build_program(self.input_nodes, program_spec,
                                       self.operators, 0)
@@ -104,7 +105,7 @@ class DAGPointMutator(pg.evolution.Mutator):
         t4 = time.time()
         hash_string, duplicate, reward = self._check_duplicate(new_loss_program)
         t5 = time.time()
-        print('Duplicate check took ', t5 - t4)
+        logging.info('Duplicate check took %s', t5 - t4)
         new_dna = self.template.encode(
             ProgramSpec(
                 program_lst=new_program_spec.program_lst,
@@ -113,11 +114,12 @@ class DAGPointMutator(pg.evolution.Mutator):
                 loss_weight=new_program_spec.loss_weight,
                 hash_output=hash_string))
         t6 = time.time()
-        print('Encoding took ', t6 - t5)
-        print(program_spec.loss_weight, new_program_spec.loss_weight)
+        logging.info('Encoding took %s', t6 - t5)
+        logging.info('%s, %s', program_spec.loss_weight,
+                     new_program_spec.loss_weight)
         if valid:
           new_dna.use_spec(old_spec)
-          print('use spec took ', time.time() - t6)
+          logging.info('use spec took %s', time.time() - t6)
           return new_dna
     else:
       # Sample new program
@@ -147,7 +149,7 @@ class DAGPointMutator(pg.evolution.Mutator):
     n_idx = node_idx - len(self.input_nodes)
     op_to_mutate = loss_program.ops_lst[node_idx]
 
-    print('Mutating op', op_to_mutate)
+    logging.info('Mutating op %s', op_to_mutate)
 
     return node_idx, n_idx, op_to_mutate
 
@@ -184,8 +186,8 @@ class DAGPointMutator(pg.evolution.Mutator):
             if new_op.odtype == op_to_replace.odtype:
               valid_lst.append((op_idx, list(input_idxs)))
     t1 = time.time()
-    print('Tried %d possible choices' % count)
-    print('Took time ', t1 - t0)
+    logging.info('Tried %d possible choices', count)
+    logging.info('Took time %s ', t1 - t0)
     op_idx, input_idxs = random.choice(valid_lst)
     new_program_lst = []
     for i, (old_idx, old_input_idxs) in enumerate(program_lst):

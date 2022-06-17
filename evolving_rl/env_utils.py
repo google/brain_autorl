@@ -27,6 +27,7 @@ import traceback
 from typing import Optional
 
 from absl import flags
+from absl import logging
 import acme
 from acme import specs
 from acme import wrappers
@@ -133,8 +134,8 @@ def run_train_loop(env_id,
   else:
     eval_period = None
 
-  print('Num Actions', env_spec.actions.num_values)
-  print(env_spec.actions)
+  logging.info('Num Actions: %s', env_spec.actions.num_values)
+  logging.info(env_spec.actions)
   try:
     # Construct the agent.
     kwargs = networks
@@ -224,7 +225,7 @@ def run_train_loop(env_id,
     del train_agent
     del eval_agent
   except AssertionError:
-    print(traceback.format_exc())
+    logging.info('Ignored exception: %s', traceback.format_exc())
     eval_metrics = {
         'eval/normalized_avg_return': 0.0,
         'train/normalized_avg_return': 0.0,

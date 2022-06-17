@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import random
 import typing
+from absl import logging
 
 from brain_autorl.evolving_rl.ops import LossOpNode
 from brain_autorl.evolving_rl.ops import Node
@@ -142,7 +143,8 @@ class GraphMutator(pg.evolution.Mutator):
                 reward=float(reward),
                 loss_weight=new_program_spec.loss_weight))
         new_dna.set_userdata(_GRAPH_HASH_KEY, hash_key)
-        print(program_spec.loss_weight, new_program_spec.loss_weight)
+        logging.info('%s, %s', program_spec.loss_weight,
+                     new_program_spec.loss_weight)
         if valid:
           new_dna.use_spec(old_spec)
           return new_dna
@@ -173,7 +175,7 @@ class GraphMutator(pg.evolution.Mutator):
     n_idx = node_idx - len(self.input_nodes)
     op_to_mutate = loss_program.ops_lst[node_idx]
 
-    print('Mutating op', op_to_mutate)
+    logging.info('Mutating op: %s', op_to_mutate)
 
     return node_idx, n_idx, op_to_mutate
 
@@ -266,7 +268,7 @@ def update_cache(
       hash_value = pg.evolution.get_fitness(dna)
       cache[hash_key] = hash_value
 
-  print(f'global cache updated: {cache}')
+  logging.info('global cache updated: total %s items', len(cache))
   return dna_list
 
 

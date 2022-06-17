@@ -19,6 +19,7 @@ import traceback
 from typing import List, Optional
 import urllib
 
+from absl import logging
 from brain_autorl.evolving_rl.ops import ConstantGenNode
 from brain_autorl.evolving_rl.ops import DTYPE
 from brain_autorl.evolving_rl.ops import InputNode
@@ -74,13 +75,13 @@ class Program():
           values_lst.append(op.execute(inputs))
       return values_lst[-1]
     except Exception as e:
-      print(traceback.format_exc())
-      print('Failed at op', op)  # pytype: disable=name-error
-      print('Inputs', inputs)  # pytype: disable=name-error
-      print('Input shapes', [tf.shape(x) for x in inputs])  # pytype: disable=name-error
-      print('ops_lst', self.ops_lst)
-      print('viz', self.visualize())
-      print('Value list', values_lst)
+      logging.info('Exception: %s', traceback.format_exc())
+      logging.info('Failed at op: %s', op)  # pytype: disable=name-error
+      logging.info('Inputs: %s', inputs)  # pytype: disable=name-error
+      logging.info('Input shapes: %s', [tf.shape(x) for x in inputs])  # pytype: disable=name-error
+      logging.info('ops_lst: %s', self.ops_lst)
+      logging.info('viz: %s', self.visualize())
+      logging.info('Value list: %s', values_lst)
       raise e
 
   def check_path_exists(self, input_idx, output_idx):
@@ -277,22 +278,22 @@ def build_program(
     # know data types ahead of time so this is checked now.
     if not op.valid:
       valid = False
-      print('invalid OP')
-      print(op, [ops_lst[idx] for idx in input_idxs])
+      logging.info('invalid OP')
+      logging.info('%s, %s', op, [ops_lst[idx] for idx in input_idxs])
     ops_lst.append(op)
   # Assume last op is output node for now.
   # The last op data type must be a float to represent a loss function.
   if op.odtype != DTYPE.FLOAT:
     valid = False
-    print('Output OP is not FLOAT')
-    print(op, [ops_lst[idx] for idx in input_idxs])
+    logging.info('Output OP is not FLOAT')
+    logging.info('%s, %s', op, [ops_lst[idx] for idx in input_idxs])
   program = Program(input_nodes, ops_lst)
 
   # Check if path exists from output to this node.
   if check_path_diff is not None:
     if not program.check_path_exists(check_path_diff, len(ops_lst) - 1):
       valid = False
-      print('Program is not differentiable')
+      logging.info('Program is not differentiable')
   return program, valid
 
 
