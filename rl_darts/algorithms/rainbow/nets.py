@@ -19,7 +19,7 @@ https://arxiv.org/abs/1710.02298
 """
 from typing import Tuple
 import numpy as np
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 

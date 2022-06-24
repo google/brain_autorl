@@ -17,7 +17,7 @@ import abc
 from typing import TypeVar
 
 import pyglove as pg
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 import tensorflow_probability as tfp
 from trfl import indexing_ops

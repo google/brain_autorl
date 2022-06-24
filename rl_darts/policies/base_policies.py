@@ -15,7 +15,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring, dangerous-default-value
 """Basic vanilla neural networks."""
 from typing import Sequence, Optional
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 

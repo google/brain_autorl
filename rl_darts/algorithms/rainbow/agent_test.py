@@ -24,7 +24,7 @@ from brain_autorl.rl_darts.algorithms.rainbow import agent as agent_lib
 from brain_autorl.rl_darts.algorithms.rainbow import nets
 
 import numpy as np
-import sonnet.v2 as snt
+import sonnet as snt
 
 
 class C51Test(parameterized.TestCase):

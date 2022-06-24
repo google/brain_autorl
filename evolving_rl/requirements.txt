@@ -1,0 +1,17 @@
+pyglove
+
+dm-acme==0.4.0
+dm-sonnet==2.0.0
+dm-reverb==0.7.1
+trfl==1.2.0
+
+gym
+gym_minigrid
+bsuite
+
+numpy==1.22.2
+tensorflow==2.8.0
+tensorflow-probability==0.15.0
+
+protobuf==3.20.*
+pydot==1.4.2

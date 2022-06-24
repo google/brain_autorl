@@ -16,7 +16,7 @@ from absl.testing import parameterized
 
 from brain_autorl.rl_darts.algorithms.rainbow import nets
 
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 

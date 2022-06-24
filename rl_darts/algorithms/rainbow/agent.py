@@ -28,7 +28,7 @@ from acme.utils import loggers
 from brain_autorl.rl_darts.algorithms.rainbow import learning
 
 import reverb
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 import trfl
 

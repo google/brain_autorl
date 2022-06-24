@@ -22,7 +22,7 @@ super().__init__(...) for correct variable capturing.
 """
 from typing import Optional, TypeVar, Tuple
 
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 from tf_agents.keras_layers import dynamic_unroll_layer
 from tf_agents.networks import actor_distribution_network

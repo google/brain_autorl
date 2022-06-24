@@ -20,7 +20,7 @@ from brain_autorl.rl_darts.policies import base_policies
 from brain_autorl.rl_darts.policies import darts_cells
 from brain_autorl.rl_darts.policies import darts_policies
 
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 from tf_agents.keras_layers import dynamic_unroll_layer
 from tf_agents.specs import tensor_spec

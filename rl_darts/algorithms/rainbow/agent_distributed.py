@@ -36,7 +36,7 @@ import dm_env
 import launchpad as lp
 import numpy as np
 import reverb
-import sonnet.v2 as snt
+import sonnet as snt
 import trfl
 
 FLAGS = flags.FLAGS

@@ -41,7 +41,7 @@ from brain_autorl.evolving_rl.env_config import atari_env_config
 from brain_autorl.evolving_rl.env_utils import LinearSchedule
 import dm_env
 import reverb
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 import tensorflow_probability as tfp
 import tree

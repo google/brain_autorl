@@ -21,7 +21,7 @@ from typing import List, Optional, Tuple, Dict
 from brain_autorl.rl_darts.policies import darts_cells
 from brain_autorl.rl_darts.policies import darts_ops
 
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 

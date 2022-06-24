@@ -25,7 +25,7 @@ from acme.utils import counting
 from acme.utils import loggers
 import numpy as np
 import reverb
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 import trfl
 

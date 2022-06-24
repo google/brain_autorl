@@ -25,7 +25,7 @@ from brain_autorl.rl_darts.policies import darts_ops
 import numpy as np
 import pydot
 import pyglove as pg
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 FloatLike = Union[tf.Tensor, float, np.ndarray]

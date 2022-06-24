@@ -20,7 +20,7 @@ import functools
 from typing import Callable, Optional, Sequence
 
 import pyglove as pg
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 _GRAPHVIZ_URL = 'https://localhost/render_png?layout_engine=dot'

@@ -17,7 +17,7 @@ from absl.testing import absltest
 
 from brain_autorl.rl_darts.algorithms.rainbow import epsilon_schedule
 
-import sonnet.v2 as snt
+import sonnet as snt
 import tensorflow as tf
 
 
