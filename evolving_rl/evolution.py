@@ -254,7 +254,8 @@ class CGSRegularizedEvolution(pg.DNAGenerator):
       parent.use_spec(self.dna_spec)
       return self.mutator.mutate(parent)
 
-  def feedback(self, dna: pg.DNA, reward: float) -> None:
+  def feedback(  # pytype: disable=signature-mismatch  # overriding-parameter-type-checks
+      self, dna: pg.DNA, reward: float) -> None:
     """Feeds back information about an evaluated DNA to the search algorithm."""
     self.mutator.update_output_dict(dna, reward)
     self._population.append(_Individual(dna, reward))
