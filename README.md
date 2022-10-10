@@ -9,3 +9,7 @@ Repository for AutoRL related codes.
 
 
 (\*) means equal contribution.
+
+
+## Disclaimer
+This is not an officially supported Google product.
