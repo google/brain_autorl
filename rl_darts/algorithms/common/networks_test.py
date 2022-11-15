@@ -43,7 +43,7 @@ class NetworksTest(tf.test.TestCase, parameterized.TestCase):
         num_nodes=5,
         output_mode=darts_cells.CellOutputMode.AVERAGE,
         trainable=True,
-        softmax_temperature=5.0,
+        softmax_temperature=0.2,
         use_batch_norm=False,
         num_inputs=1,
         model_type=darts_cells.ModelType.RNN)

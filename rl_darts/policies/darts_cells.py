@@ -74,7 +74,7 @@ class ModelType(str, enum.Enum):
 def arch_var_entropy(arch_var: tf.Variable,
                      softmax_temperature: float) -> FloatLike:
   """Gives the entropy of a single MixedOp's arch_var."""
-  prob = tf.nn.softmax(softmax_temperature * arch_var, axis=-1)
+  prob = tf.nn.softmax(arch_var / softmax_temperature, axis=-1)
   neg_p_log_p_vals = -1.0 * tf.reduce_sum(prob * tf.math.log(prob), axis=-1)
   return tf.reduce_mean(neg_p_log_p_vals)
 
