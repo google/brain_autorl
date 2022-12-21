@@ -90,7 +90,7 @@ class TransitionReplayLite(adders.Adder, Iterator[reverb.ReplaySample]):
                              self._env_spec.actions.dtype)
     self._rewards = np.zeros((buffer_size, 1), np.float32)
     self._discount = np.zeros((buffer_size, 1), np.float32)
-    self._terminal = np.zeros((buffer_size, 1), np.bool)
+    self._terminal = np.zeros((buffer_size, 1), bool)
     self._extras = {
         k: np.zeros((buffer_size,) + v.shape, v.dtype)
         for k, v in self._extras_specs.items()
