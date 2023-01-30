@@ -100,7 +100,7 @@ class Alpha(tf.Module):
   def total_mean_entropy(self) -> FloatLike:
     """Averages entropy across all MixedOps."""
     entropy_list = [
-        arch_var_entropy(arch_var, self.softmax_temperature)
+        arch_var_entropy(arch_var, self.softmax_temperature)  # pytype: disable=wrong-arg-types  # always-use-return-annotations
         for arch_var in self.arch_vars
     ]
     return tf.reduce_mean(tf.stack(entropy_list))
