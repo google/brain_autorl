@@ -79,7 +79,7 @@ class TransitionReplayLite(adders.Adder, Iterator[reverb.ReplaySample]):
     self._capacity = buffer_size
     self._env_spec = env_spec
     self._extras_specs = extras_specs or {
-        "log_prob": TensorSpec((), np.float32)
+        "log_prob": TensorSpec((), np.float32)  # pytype: disable=wrong-arg-types  # numpy-scalars
     }
 
     # Init states
