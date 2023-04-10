@@ -96,21 +96,38 @@ class TransitionReplayLite(adders.Adder, Iterator[reverb.ReplaySample]):
         for k, v in self._extras_specs.items()
     }
 
-    self._step_idx = -1  # Index into buffer
-    self._size = -1  # Number of samples added to buffer so far
+    # We maintain these buffers in the following structure:
+    # s_t, s_tp1, ...
+    # a_t, ...
+    # r_t, ...
+    # d_t, ...
+    # ..., terminal_t, ...
+    #
+    # NOTE: terminal_t is aligned with s_tp1. During sampling, we only sample
+    # "non-terminal columns" and "non-leading columns".
+    # Index of the "leading column"
+    self._step_idx = -1
+    # Number of states added to buffer so far. Capped at capacity.
+    self._size = 0
+    self._add_first_called = False
+    self._valid_mask = np.zeros((self._capacity, 1), dtype=bool)
 
   def get_size(self):
     return self._size
 
   def _reset_buffer(self):
-    self._size = -1
+    self._size = 0
     self._step_idx = -1
+    self._valid_mask = np.zeros((self._capacity, 1), dtype=bool)
 
   def add_first(self, timestep: dm_env.TimeStep):
     """See base class `adders.Adder`."""
+    self._add_first_called = True
     self._size = min(self._size + 1, self._capacity)
-    self._step_idx = (self._step_idx + 1) % (self._capacity - 1)
+    self._step_idx = (self._step_idx + 1) % self._capacity
     self._observations[self._step_idx] = timestep.observation
+    # Leading state cannot be sampled.
+    self._valid_mask[self._step_idx, 0] = 0
 
   def add(
       self,
@@ -119,20 +136,34 @@ class TransitionReplayLite(adders.Adder, Iterator[reverb.ReplaySample]):
       extras: types.NestedArray = (),
   ):
     """See base class `adders.Adder`."""
+    assert self._add_first_called, "add_first() not called yet!"
     t = self._step_idx
-
+    tp1 = (t + 1) % self._capacity
+    self._valid_mask[t, 0] = 1
+    self._valid_mask[tp1, 0] = 0  # Leading state cannot be sampled
     self._actions[t] = action
-    self._observations[t + 1] = next_timestep.observation
+    self._observations[tp1] = next_timestep.observation
     self._rewards[t] = next_timestep.reward
     self._discount[t] = next_timestep.discount
+
     # Terminal will be 1 at same idx as terminal state
-    self._terminal[t + 1] = next_timestep.last()
+    self._terminal[tp1] = next_timestep.last()
     if extras:
       for key in extras:
         self._extras[key][t] = extras[key]
+    if next_timestep.last():
+      # Padding zero. During sampling, only positions w/ non-terminals
+      # states are sampled. So these dummy values are never used.
+      self._actions[tp1] = np.zeros(self._env_spec.actions.shape,
+                                    self._env_spec.actions.dtype)
+      self._rewards[tp1] = np.zeros(self._env_spec.rewards.shape,
+                                    np.float32)
+      self._discount[tp1] = np.zeros(self._env_spec.discounts.shape,
+                                     bool)
+      self._add_first_called = False
 
     self._size = min(self._size + 1, self._capacity)
-    self._step_idx = (self._step_idx + 1) % (self._capacity - 1)
+    self._step_idx = tp1
 
   def reset(self):
     """Unused method from `adders.Adder`."""
@@ -152,17 +183,19 @@ class TransitionReplayLite(adders.Adder, Iterator[reverb.ReplaySample]):
 
   def __next__(self):
     """Sample random batch from buffer."""
-    # Sample from nonterminal idxs
+    n = min(self._size, self._capacity)
     idx = self._rng.choice(
-        np.nonzero(self._terminal[:(self._size - 1)] == 0)[0],
-        self._minibatch_size)
+        np.nonzero(self._valid_mask[:n])[0],
+        size=self._minibatch_size,
+        replace=False)
+    idxp1 = (idx + 1) % self._capacity
     extras = {k: self._extras[k][idx] for k in self._extras.keys()}
     data = types.Transition(
         observation=tf.convert_to_tensor(self._observations[idx]),
         action=tf.convert_to_tensor(self._actions[idx]),
         reward=tf.convert_to_tensor(self._rewards[idx]),
         discount=tf.convert_to_tensor(self._discount[idx]),
-        next_observation=tf.convert_to_tensor(self._observations[idx + 1]),
+        next_observation=tf.convert_to_tensor(self._observations[idxp1]),
         extras=extras,
     )
     # Set a dummy info object. We don't use it.
