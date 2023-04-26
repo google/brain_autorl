@@ -118,7 +118,7 @@ class GraphMutator(pg.evolution.Mutator):
     else:
       return hash_key, False, 0.
 
-  def mutate(self, dna: pg.DNA, global_state, step) -> pg.DNA:
+  def mutate(self, dna: pg.DNA, global_state, step) -> pg.DNA:  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
     """Mutates a DNA by randomizing one of the operations."""
     del step
 

@@ -190,7 +190,7 @@ class DummyOpNode(OpNode):
   """Dummy operation for treating as intermediate nodes in the search space."""
   num_inputs = None
 
-  def execute(self):
+  def execute(self):  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
     pass
 
   def check_valid(self, input_dtypes):

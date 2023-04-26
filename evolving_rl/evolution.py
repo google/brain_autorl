@@ -82,7 +82,7 @@ class DAGPointMutator(pg.evolution.Mutator):
       logging.info('Duplicate already in dict %s', output_str)
     self.output_dict[output_str] = reward
 
-  def mutate(self, dna: pg.DNA) -> pg.DNA:
+  def mutate(self, dna: pg.DNA) -> pg.DNA:  # pytype: disable=signature-mismatch  # overriding-parameter-count-checks
     """Mutates a DNA by randomizing one of the operations."""
     old_spec = dna.spec
     # program_spec = self.template.decode(dna)
