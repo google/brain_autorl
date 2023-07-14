@@ -630,8 +630,11 @@ class ProcGenObsWrapper(gym.core.ObservationWrapper):
 
   def observation(self, obs):
     obs = np.array(
-        Image.fromarray(obs).resize(self.img_size[:2], Image.BILINEAR),
-        dtype=np.float32)
+        Image.fromarray(obs).resize(
+            self.img_size[:2], Image.Resampling.BILINEAR
+        ),
+        dtype=np.float32,
+    )
     # obs = tf.image.resize(obs, (self.img_size[:2])).numpy()
     obs = obs / 255.
     return obs
