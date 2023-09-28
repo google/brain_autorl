@@ -278,6 +278,7 @@ class FixedCellConfig(CellConfig):
 class DartsCellConfig(CellConfig):
   """A DARTS/Dense cell config."""
 
+  @pg.explicit_method_override
   def __init__(self, *args, **kwargs):
     """Barebones init, since `pg.load` does not allow __init__ args."""
     super().__init__(*args, **kwargs)
